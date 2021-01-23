@@ -1,7 +1,7 @@
 # A script to display details of the retention policies applying to SharePoint and OneDrive for Business sites in an Office 365 tenant.
 # Uses the Security and Compliance Center PowerShell module
-
-$Report = @()
+# https://github.com/12Knocksinna/Office365itpros/blob/master/SPOSitesRetention.ps1
+$Report = [System.Collections.Generic.List[Object]]::new()
 # Fetch a set of retention policies that apply to SharePoint and aren't to publish labels
 $Policies = (Get-RetentionCompliancePolicy -ExcludeTeamsPolicy -DistributionDetail -RetentionRuleTypes | ? {$_.SharePointLocation -ne $Null -and $_.RetentionRuleTypes -ne "Publish"})
 ForEach ($P in $Policies) {
@@ -30,7 +30,7 @@ ForEach ($P in $Policies) {
               RetentionDuration = $Duration
               RetentionAction   = $RetentionAction 
               Settings           = $Settings}
-            $Report += $ReportLine } 
+           $Report.Add($ReportLine) } 
             If ($P.SharePointLocationException -ne $Null) {
                $Locations = ($P | Select -ExpandProperty SharePointLocationException)
                ForEach ($L in $Locations) {
@@ -39,7 +39,7 @@ ForEach ($P in $Policies) {
                     PolicyName = $P.Name
                     SiteName   = $Exception
                     SiteURL    = $L.Name }
-               $Report += $ReportLine }
+               $Report.Add($ReportLine) }
         }
         ElseIf ($P.SharePointLocation.Name -ne "All") {
            $Locations = ($P | Select -ExpandProperty SharePointLocation)
@@ -52,8 +52,13 @@ ForEach ($P in $Policies) {
                   RetentionDuration = $Duration
                   RetentionAction   = $RetentionAction
                   Settings          = $Settings}
-               $Report += $ReportLine  }                    
+               $Report.Add($ReportLine)  }                    
           }
 }
 $Report | Sort SiteName| Format-Table PolicyName, SiteName, RetentionDuration, RetentionAction, Settings -AutoSize
 
+# An example script used to illustrate a concept. More information about the topic can be found in the Office 365 for IT Pros eBook https://gum.co/O365IT/
+# and/or a relevant article on https://office365itpros.com or https://www.petri.com. See our post about the Office 365 for IT Pros repository # https://office365itpros.com/office-365-github-repository/ for information about the scripts we write.
+
+# Do not use our scripts in production until you are satisfied that the code meets the need of your organization. Never run any code downloaded from the Internet without
+# first validating the code in a non-production environment.
